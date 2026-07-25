@@ -1,12 +1,11 @@
-import csv
 import pandas as pd
 from azure.identity import DefaultAzureCredential
-from azure.mgmt.databricks import DatabricksClient
+from azure.mgmt.databricks import AzureDatabricksManagementClient
 
-# Initialize Azure credentials and Databricks client
+# Initialize credentials and client
 credential = DefaultAzureCredential()
 subscription_id = "YOUR_SUBSCRIPTION_ID"  # Replace with your actual subscription ID
-client = DatabricksClient(credential=credential, subscription_id=subscription_id)
+client = AzureDatabricksManagementClient(credential=credential, subscription_id=subscription_id)
 
 def get_all_workspaces():
     """Retrieve all Databricks workspaces in the current subscription."""
@@ -27,7 +26,7 @@ def extract_workspace_details(workspace):
         "resource_group": workspace.id.split('/')[4] if workspace.id else None,
         "sku": workspace.sku.name if workspace.sku else None,
         "workspace_id": workspace.workspace_id,
-        "workspace_url": workspace.workspace_url,  # This is the endpoint URL
+        "workspace_url": workspace.workspace_url,          # The endpoint URL
         "provisioning_state": workspace.provisioning_state,
         "managed_resource_group_id": workspace.managed_resource_group_id,
         "created_date_time": workspace.created_date_time,
@@ -40,10 +39,8 @@ def save_to_csv(workspaces, filename="databricks_workspaces.csv"):
     if not workspaces:
         print("No workspaces found.")
         return
-    
     details_list = [extract_workspace_details(ws) for ws in workspaces]
     df = pd.DataFrame(details_list)
-    
     df.to_csv(filename, index=False, encoding='utf-8')
     print(f"Successfully saved details of {len(df)} workspaces to {filename}")
 
@@ -51,10 +48,7 @@ def main():
     print("Fetching Databricks workspaces...")
     workspaces = get_all_workspaces()
     print(f"Found {len(workspaces)} workspaces.")
-    
     save_to_csv(workspaces)
-    
-    # Optional: print a preview
     if workspaces:
         print("\nPreview of first 5 workspaces:")
         for i, ws in enumerate(workspaces[:5]):
