@@ -1,0 +1,6 @@
+pip install azure-mgmt-databricks azure-identity pandas
+pip install azure-identity azure-mgmt-compute azure-mgmt-subscription
+python disk_inventory.py
+python disk_inventory.py --output my_report.csv
+python disk_inventory.py --subscription "your-subscription-id-here"
+python disk_inventory.py --help
