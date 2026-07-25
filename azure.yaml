@@ -1,0 +1,62 @@
+name: Azure Disk Inventory
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * 1"   # Every Monday 02:00 UTC
+
+jobs:
+  disk-inventory:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: |
+          pip install \
+            azure-identity \
+            azure-mgmt-compute \
+            azure-mgmt-subscription
+
+      - run: |
+          python azure_disks_inventory.py
+
+      - name: Upload CSV
+        uses: actions/upload-artifact@v4
+        with:
+          name: azure-disks
+          path: azure_disks_inventory.csv
+
+- name: Send email
+  uses: dawidd6/action-send-mail@v3
+  with:
+    server_address: smtp.office365.com
+    server_port: 587
+    username: ${{ secrets.EMAIL_USERNAME }}
+    password: ${{ secrets.EMAIL_PASSWORD }}
+
+    subject: Azure Managed Disk Inventory
+
+    to: |
+      user1@company.com,
+      user2@company.com
+
+    from: Azure Inventory <user@company.com>
+
+    body: |
+      Hi,
+
+      Please find attached the latest Azure Managed Disks inventory.
+
+      Regards,
+      GitHub Actions
+
+    attachments: azure_disks_inventory.csv
